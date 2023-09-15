@@ -1,0 +1,8 @@
+{
+  "arbitrum-goerli": {
+    "USDsV2": {
+      "address": "0x7160654d6a254d28EaDa2E5A107ED46081DDB222",
+      "startBlock": 37533147
+    }
+  }
+}

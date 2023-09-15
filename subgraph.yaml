@@ -1,0 +1,45 @@
+specVersion: 0.0.5
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: USDsV2
+    network: arbitrum-goerli
+    source:
+      address: "0x7160654d6a254d28EaDa2E5A107ED46081DDB222"
+      abi: USDsV2
+      startBlock: 37533147
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - EIP712DomainChanged
+        - Initialized
+        - OwnershipTransferred
+        - Paused
+        - TotalSupplyUpdated
+        - Transfer
+        - VaultUpdated
+      abis:
+        - name: USDsV2
+          file: ./abis/USDsV2.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: EIP712DomainChanged()
+          handler: handleEIP712DomainChanged
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: Paused(bool)
+          handler: handlePaused
+        - event: TotalSupplyUpdated(uint256,uint256,uint256)
+          handler: handleTotalSupplyUpdated
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: VaultUpdated(address)
+          handler: handleVaultUpdated
+      file: ./src/us-ds-v-2.ts
