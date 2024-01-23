@@ -1,0 +1,540 @@
+[
+  { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "collateral", "type": "address" },
+      { "internalType": "address", "name": "strategy", "type": "address" },
+      { "internalType": "uint256", "name": "amount", "type": "uint256" }
+    ],
+    "name": "AllocationNotAllowed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "message", "type": "string" }
+    ],
+    "name": "CustomError",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "collateral", "type": "address" },
+      { "internalType": "address", "name": "strategy", "type": "address" },
+      { "internalType": "uint256", "name": "amount", "type": "uint256" },
+      {
+        "internalType": "uint256",
+        "name": "availableAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "InsufficientCollateral",
+    "type": "error"
+  },
+  { "inputs": [], "name": "InvalidAddress", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "address", "name": "_strategyAddr", "type": "address" }
+    ],
+    "name": "InvalidStrategy",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "actualAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "minExpectedAmt", "type": "uint256" }
+    ],
+    "name": "MinSlippageError",
+    "type": "error"
+  },
+  { "inputs": [], "name": "MintFailed", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "collateral", "type": "address" }
+    ],
+    "name": "RedemptionPausedForCollateral",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "collateral",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "strategy",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "Allocated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newCollateralManager",
+        "type": "address"
+      }
+    ],
+    "name": "CollateralManagerUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newFeeCalculator",
+        "type": "address"
+      }
+    ],
+    "name": "FeeCalculatorUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newFeeVault",
+        "type": "address"
+      }
+    ],
+    "name": "FeeVaultUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "version",
+        "type": "uint8"
+      }
+    ],
+    "name": "Initialized",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "collateralAddr",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "usdsAmt",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "collateralAmt",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "feeAmt",
+        "type": "uint256"
+      }
+    ],
+    "name": "Minted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newOracle",
+        "type": "address"
+      }
+    ],
+    "name": "OracleUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newRebaseManager",
+        "type": "address"
+      }
+    ],
+    "name": "RebaseManagerUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "rebaseAmt",
+        "type": "uint256"
+      }
+    ],
+    "name": "RebasedUSDs",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "collateralAddr",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "usdsAmt",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "collateralAmt",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "feeAmt",
+        "type": "uint256"
+      }
+    ],
+    "name": "Redeemed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "newYieldReceiver",
+        "type": "address"
+      }
+    ],
+    "name": "YieldReceiverUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "address", "name": "_strategy", "type": "address" },
+      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+    ],
+    "name": "allocate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "collateralManager",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "feeCalculator",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "feeVault",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      {
+        "internalType": "uint256",
+        "name": "_collateralAmt",
+        "type": "uint256"
+      },
+      { "internalType": "uint256", "name": "_minUSDSAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "_deadline", "type": "uint256" }
+    ],
+    "name": "mint",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      {
+        "internalType": "uint256",
+        "name": "_collateralAmt",
+        "type": "uint256"
+      },
+      { "internalType": "uint256", "name": "_minUSDSAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "_deadline", "type": "uint256" }
+    ],
+    "name": "mintBySpecifyingCollateralAmt",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "uint256", "name": "_collateralAmt", "type": "uint256" }
+    ],
+    "name": "mintView",
+    "outputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "oracle",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rebase",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rebaseManager",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "uint256", "name": "_usdsAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "_minCollAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "_deadline", "type": "uint256" },
+      { "internalType": "address", "name": "_strategy", "type": "address" }
+    ],
+    "name": "redeem",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "uint256", "name": "_usdsAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "_minCollAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "_deadline", "type": "uint256" }
+    ],
+    "name": "redeem",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "uint256", "name": "_usdsAmt", "type": "uint256" },
+      { "internalType": "address", "name": "_strategyAddr", "type": "address" }
+    ],
+    "name": "redeemView",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "calculatedCollateralAmt",
+        "type": "uint256"
+      },
+      { "internalType": "uint256", "name": "usdsBurnAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "feeAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "vaultAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "strategyAmt", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "uint256", "name": "_usdsAmt", "type": "uint256" }
+    ],
+    "name": "redeemView",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "calculatedCollateralAmt",
+        "type": "uint256"
+      },
+      { "internalType": "uint256", "name": "usdsBurnAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "feeAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "vaultAmt", "type": "uint256" },
+      { "internalType": "uint256", "name": "strategyAmt", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "newOwner", "type": "address" }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_collateralManager",
+        "type": "address"
+      }
+    ],
+    "name": "updateCollateralManager",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_feeCalculator", "type": "address" }
+    ],
+    "name": "updateFeeCalculator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_feeVault", "type": "address" }
+    ],
+    "name": "updateFeeVault",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_oracle", "type": "address" }
+    ],
+    "name": "updateOracle",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_rebaseManager", "type": "address" }
+    ],
+    "name": "updateRebaseManager",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_yieldReceiver", "type": "address" }
+    ],
+    "name": "updateYieldReceiver",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "yieldReceiver",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

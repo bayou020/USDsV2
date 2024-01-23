@@ -1,22 +1,52 @@
+type totalSupplyUsd @entity {
+  id: ID!
+  totalInVault: BigDecimal!
+  totalInStrategies: BigDecimal!
+  TVL: BigDecimal!
+  totalSupply: BigDecimal! # uint256
+  totalSupplyAmt: BigDecimal!
+  collateralsAmt: BigDecimal!
+  ratio: BigDecimal!
+  rebasingSupply: BigDecimal! # uint256
+  nonRebasingSupply: BigDecimal! # uint256
+  transactionData: TransactionData!
+}
+
+type Mint @entity(immutable: true) {
+  id: Bytes!
+  wallet: User! # address
+  collateralAddr: Bytes! # address
+  usdsAmt: BigDecimal! # uint256
+  collateralAmt: BigDecimal! # uint256
+  feeAmt: BigDecimal! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Redeem @entity(immutable: true) {
+  id: Bytes!
+  wallet: User! # address
+  collateralAddr: Bytes! # address
+  usdsAmt: BigDecimal! # uint256
+  collateralAmt: BigDecimal! # uint256
+  feeAmt: BigDecimal! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type Approval @entity(immutable: true) {
   id: Bytes!
   owner: Bytes! # address
   spender: Bytes! # address
-  value: BigInt! # uint256
+  value: BigDecimal! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
 
-type EIP712DomainChanged @entity(immutable: true) {
-  id: Bytes!
-
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Initialized @entity(immutable: true) {
+type Initialize @entity(immutable: true) {
   id: Bytes!
   version: Int! # uint8
   blockNumber: BigInt!
@@ -24,16 +54,7 @@ type Initialized @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type OwnershipTransferred @entity(immutable: true) {
-  id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Paused @entity(immutable: true) {
+type Pause @entity(immutable: true) {
   id: Bytes!
   isPaused: Boolean! # bool
   blockNumber: BigInt!
@@ -41,7 +62,7 @@ type Paused @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type TotalSupplyUpdated @entity(immutable: true) {
+type TotalSupplyUpdate @entity(immutable: true) {
   id: Bytes!
   totalSupply: BigInt! # uint256
   rebasingCredits: BigInt! # uint256
@@ -55,15 +76,535 @@ type Transfer @entity(immutable: true) {
   id: Bytes!
   from: Bytes! # address
   to: Bytes! # address
-  value: BigInt! # uint256
+  value: BigDecimal! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
 
-type VaultUpdated @entity(immutable: true) {
+type TokenDataChange @entity(immutable: true) {
   id: Bytes!
-  newVault: Bytes! # address
+  tokenAddr: Bytes! # address
+  priceFeed: Bytes! # address
+  pricePrecision: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+type PriceFeedRemove @entity(immutable: true) {
+  id: Bytes!
+  token: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PriceFeedUpdate @entity(immutable: true) {
+  id: Bytes!
+  token: Bytes! # address
+  source: Bytes! # address
+  msgData: Bytes! # bytes
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+type Allocate @entity(immutable: true) {
+  id: Bytes!
+  collateral: Bytes! # address
+  strategy: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type USDsRebase @entity(immutable: true) {
+  id: Bytes!
+  rebaseAmt: BigDecimal! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type AddCollateral @entity(immutable: true) {
+  id: Bytes!
+  collateral: Bytes! # address
+  token: Token!
+  data_mintAllowed: Boolean! # bool
+  data_redeemAllowed: Boolean! # bool
+  data_allocationAllowed: Boolean! # bool
+  data_downsidePeg: Int! # uint16
+  data_desiredCollateralComposition: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type UpdateCollateral @entity(immutable: true) {
+  id: Bytes!
+  collateral: Bytes! # address
+  data_mintAllowed: Boolean! # bool
+  data_redeemAllowed: Boolean! # bool
+  data_allocationAllowed: Boolean! # bool
+  data_downsidePeg: Int! # uint16
+  data_desiredCollateralComposition: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RemoveCollateral @entity(immutable: true) {
+  id: Bytes!
+  collateral: Token! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CollateralStrategyAdd @entity(immutable: true) {
+  id: Bytes!
+  collateral: Token! # address
+  strategy: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CollateralStrategyRemove @entity(immutable: true) {
+  id: Bytes!
+  collateral: Token! # address
+  strategy: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type CollateralStrategyUpdate @entity(immutable: true) {
+  id: Bytes!
+  collateral: Bytes! # address
+  strategy: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+type Token @entity(immutable: false) {
+  id: Bytes!
+  symbol: String! # String
+  name: String! # String
+  vaultAmount: BigDecimal!
+  vaultValue: BigDecimal!
+  decimals: BigInt! # String
+  strategies: usdsStrategy!
+  vault: TotalCollateral! @derivedFrom(field: "collaterals")
+  isCollateral: Boolean! # bool
+  srcAllowed: Boolean! # bool
+  dstAllowed: Boolean! # bool
+  isLpToken: Boolean! # bool
+}
+type usdsStrategy @entity(immutable: false) {
+  id: Bytes!
+  collaterals: [Token!]! @derivedFrom(field: "strategies")
+  Balances: [BigDecimal!]!
+  col: [Bytes!]!
+  bal: [BigDecimal!]!
+}
+type Collect @entity(immutable: true) {
+  id: Bytes!
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DripDurationUpdate @entity(immutable: true) {
+  id: Bytes!
+  dripDuration: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Recover @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+type APRUpdate @entity(immutable: true) {
+  id: Bytes!
+  aprBottom: BigInt! # uint256
+  aprCap: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type GapUpdate @entity(immutable: true) {
+  id: Bytes!
+  gap: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+type BoughtBack @entity(immutable: true) {
+  id: Bytes!
+  receiverOfUSDs: Bytes! # address
+  senderOfSPA: Bytes! # address
+  spaPrice: BigDecimal! # uint256
+  spaValue: BigDecimal!
+  usdsValue: BigDecimal!
+  spaLeft: BigDecimal!
+  usdsLeft: BigDecimal!
+  spaAmount: BigDecimal! # uint256
+  usdsAmount: BigDecimal! # uint256
+  spaBurned: BigDecimal! # uint256
+  spaRewarded: BigDecimal! # uint256
+  transactionData: TransactionData!
+}
+
+type RewardPercentageUpdate @entity(immutable: true) {
+  id: Bytes!
+  newRewardPercentage: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type SPABurn @entity(immutable: true) {
+  id: Bytes!
+  spaAmount: BigDecimal! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+type SPADayBurn @entity(immutable: false) {
+  id: ID!
+  count: BigInt!
+  spaAmount: BigDecimal! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type SPAReward @entity(immutable: true) {
+  id: Bytes!
+  spaAmount: BigDecimal! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TotalSPAReward @entity {
+  id: Bytes!
+  count: BigInt!
+  spaAmount: BigDecimal! # uint256
+  spaValue: BigDecimal!
+}
+
+type Withdraw @entity(immutable: true) {
+  id: Bytes!
+  token: Bytes! # address
+  receiver: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BuybackPercentageUpdate @entity(immutable: true) {
+  id: Bytes!
+  toBuyback: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DstTokenPermissionUpdate @entity(immutable: true) {
+  id: Bytes!
+  token: Token! # address
+  isAllowed: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type SrcTokenPermissionUpdate @entity(immutable: true) {
+  id: Bytes!
+  token: Token! # address
+  isAllowed: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Swap @entity(immutable: true) {
+  id: Bytes!
+  srcToken: Bytes! # address
+  dstToken: Bytes! # address
+  dstReceiver: Bytes! # address
+  amountIn: BigInt! # uint256
+  amountOut: BigInt! # uint256
+  transactionData: TransactionData!
+}
+
+type USDsMintedViaSwapper @entity(immutable: true) {
+  id: Bytes!
+  collateralAddr: Bytes! # address
+  usdsMinted: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type USDsSent @entity(immutable: true) {
+  id: Bytes!
+  toBuyback: BigInt! # uint256
+  toVault: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type TransactionData @entity(immutable: false) {
+  id: ID!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+#-------------------Aggregated Events-----------------
+type DayBuyback @entity {
+  id: ID!
+  count: BigInt!
+  spaAmount: BigDecimal!
+  usdsAmount: BigDecimal!
+  spaValue: BigDecimal!
+  usdsValue: BigDecimal!
+  usdsLeft: BigDecimal!
+  spaLeft: BigDecimal!
+  spaPrice: BigDecimal!
+  transactionData: TransactionData!
+}
+type TotalBuyback @entity {
+  id: ID!
+  count: BigInt!
+  spaAmount: BigDecimal!
+  usdsAmount: BigDecimal!
+  spaValue: BigDecimal!
+  usdsValue: BigDecimal!
+  usdsLeft: BigDecimal!
+  spaLeft: BigDecimal!
+  spaPrice: BigDecimal!
+  transactionData: TransactionData!
+}
+type User @entity {
+  id: Bytes!
+  mintCount: BigInt!
+  redeemCount: BigInt!
+  holder: Boolean!
+  mint: [Mint!]! @derivedFrom(field: "wallet")
+  redeem: [Redeem!]! @derivedFrom(field: "wallet")
+  harvest: [HarvestIncentiveCollect!]! @derivedFrom(field: "harvestor")
+}
+type CollateralStrategy @entity {
+  id: Bytes!
+  collateral: Collateral! # address
+  strategy: Bytes! # address
+  active: Boolean!
+  totalValueLocked: BigDecimal!
+  TransactionData: TransactionData!
+}
+type Collateral @entity {
+  id: Bytes!
+  symbol: String! # String
+  name: String! # String
+  decimals: BigInt! # String
+  vaultAmount: BigDecimal!
+  vaultValue: BigDecimal!
+  strategiesAddresses: [Bytes!]!
+  strategiesNames: [String!]!
+  strategiesAmounts: [BigDecimal!]!
+  strategiesValues: [BigDecimal!]!
+  totalStrategyValue: BigDecimal!
+  totalValue: BigDecimal!
+  interestDistributedValue: BigDecimal!
+  interestCollectedValue: BigDecimal!
+  interestValue: BigDecimal!
+}
+type DailyCollateral @entity {
+  id: ID!
+  collateral: Bytes!
+  symbol: String! # String
+  name: String! # String
+  decimals: BigInt! # String
+  vaultAmount: BigDecimal!
+  vaultValue: BigDecimal!
+  strategiesAddresses: [Bytes!]!
+  strategiesNames: [String!]!
+  strategiesAmounts: [BigDecimal!]!
+  strategiesValues: [BigDecimal!]!
+  totalStrategyValue: BigDecimal!
+  totalValue: BigDecimal!
+  interestDistributedValue: BigDecimal!
+  interestCollectedValue: BigDecimal!
+  interestValue: BigDecimal!
+  blockTimestamp: BigInt!
+}
+type TotalCollateral @entity {
+  id: Bytes!
+  collaterals: [Token!]!
+  vaultAmounts: [BigDecimal!]
+  vaultValues: [BigDecimal!]
+  blockNumber: BigInt!
+}
+
+type mintRedeemFee @entity {
+  id: Bytes!
+  mintFees: BigDecimal!
+  redeemFees: BigDecimal!
+}
+#-------------------Strategy Events-----------------
+
+type totalRevenue @entity {
+  id: Bytes!
+  totalInterest: BigDecimal! 
+  totalReward: BigDecimal!
+}
+type Deposit @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  asset: Token! # address
+  amount: BigDecimal! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type HarvestIncentiveCollect @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  token: Bytes! # address
+  harvestor: User! # address
+  amount: BigDecimal! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type HarvestIncentiveRateUpdate @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  newRate: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategyInitialize @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  version: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type InterestCollect @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  asset: Bytes! # address
+  recipient: Bytes! # address
+  amount: BigDecimal! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransfer @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type AddPToken @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  asset: Bytes! # address
+  pToken: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RemovePToken @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  asset: Bytes! # address
+  pToken: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RewardTokenCollect @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  rwdToken: Bytes! # address
+  recipient: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type SlippageUpdate @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  depositSlippage: Int! # uint16
+  withdrawSlippage: Int! # uint16
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type VaultUpdate @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  newVaultAddr: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Withdrawal @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  asset: Token! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type YieldReceiverUpdate @entity(immutable: true) {
+  id: Bytes!
+  strategy: Bytes! # address
+  newYieldReceiver: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type FeeCalibrate @entity(immutable: true) {
+  id: Bytes!
+  collateral: Bytes! # address
+  mintFee: Int! # uint16
+  redeemFee: Int! # uint16
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

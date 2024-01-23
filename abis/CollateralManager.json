@@ -1,0 +1,561 @@
+[
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_vault", "type": "address" }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "AllocationPercentageLowerThanAllocatedAmt",
+    "type": "error"
+  },
+  { "inputs": [], "name": "CollateralAllocationPaused", "type": "error" },
+  { "inputs": [], "name": "CollateralDoesNotExist", "type": "error" },
+  { "inputs": [], "name": "CollateralExists", "type": "error" },
+  { "inputs": [], "name": "CollateralNotSupportedByStrategy", "type": "error" },
+  { "inputs": [], "name": "CollateralStrategyExists", "type": "error" },
+  { "inputs": [], "name": "CollateralStrategyInUse", "type": "error" },
+  { "inputs": [], "name": "CollateralStrategyMapped", "type": "error" },
+  { "inputs": [], "name": "CollateralStrategyNotMapped", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "message", "type": "string" }
+    ],
+    "name": "CustomError",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "actual", "type": "uint256" }
+    ],
+    "name": "GTMaxPercentage",
+    "type": "error"
+  },
+  { "inputs": [], "name": "InvalidAddress", "type": "error" },
+  { "inputs": [], "name": "IsDefaultStrategy", "type": "error" },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "collateral",
+        "type": "address"
+      },
+      {
+        "components": [
+          { "internalType": "bool", "name": "mintAllowed", "type": "bool" },
+          { "internalType": "bool", "name": "redeemAllowed", "type": "bool" },
+          {
+            "internalType": "bool",
+            "name": "allocationAllowed",
+            "type": "bool"
+          },
+          { "internalType": "uint16", "name": "baseMintFee", "type": "uint16" },
+          {
+            "internalType": "uint16",
+            "name": "baseRedeemFee",
+            "type": "uint16"
+          },
+          { "internalType": "uint16", "name": "downsidePeg", "type": "uint16" },
+          {
+            "internalType": "uint16",
+            "name": "desiredCollateralComposition",
+            "type": "uint16"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct ICollateralManager.CollateralBaseData",
+        "name": "data",
+        "type": "tuple"
+      }
+    ],
+    "name": "CollateralAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "collateral",
+        "type": "address"
+      },
+      {
+        "components": [
+          { "internalType": "bool", "name": "mintAllowed", "type": "bool" },
+          { "internalType": "bool", "name": "redeemAllowed", "type": "bool" },
+          {
+            "internalType": "bool",
+            "name": "allocationAllowed",
+            "type": "bool"
+          },
+          { "internalType": "uint16", "name": "baseMintFee", "type": "uint16" },
+          {
+            "internalType": "uint16",
+            "name": "baseRedeemFee",
+            "type": "uint16"
+          },
+          { "internalType": "uint16", "name": "downsidePeg", "type": "uint16" },
+          {
+            "internalType": "uint16",
+            "name": "desiredCollateralComposition",
+            "type": "uint16"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct ICollateralManager.CollateralBaseData",
+        "name": "data",
+        "type": "tuple"
+      }
+    ],
+    "name": "CollateralInfoUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "collateral",
+        "type": "address"
+      }
+    ],
+    "name": "CollateralRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "collateral",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "strategy",
+        "type": "address"
+      }
+    ],
+    "name": "CollateralStrategyAdded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "collateral",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "strategy",
+        "type": "address"
+      }
+    ],
+    "name": "CollateralStrategyRemoved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "collateral",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "strategy",
+        "type": "address"
+      }
+    ],
+    "name": "CollateralStrategyUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "VAULT",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      {
+        "components": [
+          { "internalType": "bool", "name": "mintAllowed", "type": "bool" },
+          { "internalType": "bool", "name": "redeemAllowed", "type": "bool" },
+          {
+            "internalType": "bool",
+            "name": "allocationAllowed",
+            "type": "bool"
+          },
+          { "internalType": "uint16", "name": "baseMintFee", "type": "uint16" },
+          {
+            "internalType": "uint16",
+            "name": "baseRedeemFee",
+            "type": "uint16"
+          },
+          { "internalType": "uint16", "name": "downsidePeg", "type": "uint16" },
+          {
+            "internalType": "uint16",
+            "name": "desiredCollateralComposition",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct ICollateralManager.CollateralBaseData",
+        "name": "_data",
+        "type": "tuple"
+      }
+    ],
+    "name": "addCollateral",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "address", "name": "_strategy", "type": "address" },
+      { "internalType": "uint16", "name": "_allocationCap", "type": "uint16" }
+    ],
+    "name": "addCollateralStrategy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "collateralCompositionUsed",
+    "outputs": [{ "internalType": "uint16", "name": "", "type": "uint16" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "collateralInfo",
+    "outputs": [
+      { "internalType": "bool", "name": "mintAllowed", "type": "bool" },
+      { "internalType": "bool", "name": "redeemAllowed", "type": "bool" },
+      { "internalType": "bool", "name": "allocationAllowed", "type": "bool" },
+      { "internalType": "bool", "name": "exists", "type": "bool" },
+      {
+        "internalType": "address",
+        "name": "defaultStrategy",
+        "type": "address"
+      },
+      { "internalType": "uint16", "name": "baseMintFee", "type": "uint16" },
+      { "internalType": "uint16", "name": "baseRedeemFee", "type": "uint16" },
+      { "internalType": "uint16", "name": "downsidePeg", "type": "uint16" },
+      {
+        "internalType": "uint16",
+        "name": "desiredCollateralComposition",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "collateralCapacityUsed",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint256",
+        "name": "conversionFactor",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAllCollaterals",
+    "outputs": [
+      { "internalType": "address[]", "name": "", "type": "address[]" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "address", "name": "_strategy", "type": "address" }
+    ],
+    "name": "getCollateralInAStrategy",
+    "outputs": [
+      { "internalType": "uint256", "name": "allocatedAmt", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "getCollateralInStrategies",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "amountInStrategies",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "getCollateralInVault",
+    "outputs": [
+      { "internalType": "uint256", "name": "amountInVault", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "getCollateralStrategies",
+    "outputs": [
+      { "internalType": "address[]", "name": "", "type": "address[]" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "getFeeCalibrationData",
+    "outputs": [
+      { "internalType": "uint16", "name": "", "type": "uint16" },
+      { "internalType": "uint16", "name": "", "type": "uint16" },
+      { "internalType": "uint16", "name": "", "type": "uint16" },
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "getMintParams",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "bool", "name": "mintAllowed", "type": "bool" },
+          { "internalType": "uint16", "name": "baseMintFee", "type": "uint16" },
+          { "internalType": "uint16", "name": "downsidePeg", "type": "uint16" },
+          {
+            "internalType": "uint16",
+            "name": "desiredCollateralComposition",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint256",
+            "name": "conversionFactor",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct ICollateralManager.CollateralMintData",
+        "name": "mintData",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "getRedeemParams",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "bool", "name": "redeemAllowed", "type": "bool" },
+          {
+            "internalType": "address",
+            "name": "defaultStrategy",
+            "type": "address"
+          },
+          {
+            "internalType": "uint16",
+            "name": "baseRedeemFee",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "desiredCollateralComposition",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint256",
+            "name": "conversionFactor",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct ICollateralManager.CollateralRedeemData",
+        "name": "redeemData",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "address", "name": "_strategy", "type": "address" }
+    ],
+    "name": "isValidStrategy",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "removeCollateral",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "address", "name": "_strategy", "type": "address" }
+    ],
+    "name": "removeCollateralStrategy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "newOwner", "type": "address" }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      {
+        "components": [
+          { "internalType": "bool", "name": "mintAllowed", "type": "bool" },
+          { "internalType": "bool", "name": "redeemAllowed", "type": "bool" },
+          {
+            "internalType": "bool",
+            "name": "allocationAllowed",
+            "type": "bool"
+          },
+          { "internalType": "uint16", "name": "baseMintFee", "type": "uint16" },
+          {
+            "internalType": "uint16",
+            "name": "baseRedeemFee",
+            "type": "uint16"
+          },
+          { "internalType": "uint16", "name": "downsidePeg", "type": "uint16" },
+          {
+            "internalType": "uint16",
+            "name": "desiredCollateralComposition",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct ICollateralManager.CollateralBaseData",
+        "name": "_updateData",
+        "type": "tuple"
+      }
+    ],
+    "name": "updateCollateralData",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "address", "name": "_strategy", "type": "address" }
+    ],
+    "name": "updateCollateralDefaultStrategy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "address", "name": "_strategy", "type": "address" },
+      { "internalType": "uint16", "name": "_allocationCap", "type": "uint16" }
+    ],
+    "name": "updateCollateralStrategy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" },
+      { "internalType": "address", "name": "_strategy", "type": "address" },
+      { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+    ],
+    "name": "validateAllocation",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

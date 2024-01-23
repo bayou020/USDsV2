@@ -122,6 +122,32 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "RebaseOptIn",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "RebaseOptOut",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": false,
         "internalType": "uint256",
         "name": "totalSupply",
@@ -290,6 +316,17 @@
   },
   {
     "inputs": [
+      { "internalType": "string", "name": "_nameArg", "type": "string" },
+      { "internalType": "string", "name": "_symbolArg", "type": "string" },
+      { "internalType": "address", "name": "_vaultAddress", "type": "address" }
+    ],
+    "name": "initialize",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       { "internalType": "address", "name": "_account", "type": "address" },
       { "internalType": "uint256", "name": "_amount", "type": "uint256" }
     ],
@@ -378,6 +415,20 @@
       { "internalType": "address", "name": "_account", "type": "address" }
     ],
     "name": "rebaseOptIn",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rebaseOptIn",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "rebaseOptOut",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

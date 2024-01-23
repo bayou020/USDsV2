@@ -1,0 +1,97 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_collateralManager",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  { "inputs": [], "name": "InvalidCalibration", "type": "error" },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "collateral",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "mintFee",
+        "type": "uint16"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "redeemFee",
+        "type": "uint16"
+      }
+    ],
+    "name": "FeeCalibrated",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "COLLATERAL_MANAGER",
+    "outputs": [
+      {
+        "internalType": "contract ICollateralManager",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "calibrateFee",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "calibrateFeeForAll",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "collateralFee",
+    "outputs": [
+      { "internalType": "uint32", "name": "nextUpdate", "type": "uint32" },
+      { "internalType": "uint16", "name": "mintFee", "type": "uint16" },
+      { "internalType": "uint16", "name": "redeemFee", "type": "uint16" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "getMintFee",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_collateral", "type": "address" }
+    ],
+    "name": "getRedeemFee",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

@@ -1,0 +1,166 @@
+[
+  {
+    "inputs": [
+      {
+        "components": [
+          { "internalType": "address", "name": "token", "type": "address" },
+          {
+            "components": [
+              {
+                "internalType": "address",
+                "name": "priceFeed",
+                "type": "address"
+              },
+              {
+                "internalType": "uint256",
+                "name": "pricePrecision",
+                "type": "uint256"
+              }
+            ],
+            "internalType": "struct ChainlinkOracle.TokenData",
+            "name": "data",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct ChainlinkOracle.SetupTokenData[]",
+        "name": "_priceFeedData",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  { "inputs": [], "name": "ChainlinkSequencerDown", "type": "error" },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "timeSinceUp", "type": "uint256" }
+    ],
+    "name": "GracePeriodNotPassed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "token", "type": "address" }
+    ],
+    "name": "TokenNotSupported",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "tokenAddr",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "priceFeed",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "pricePrecision",
+        "type": "uint256"
+      }
+    ],
+    "name": "TokenDataChanged",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "CHAINLINK_SEQ_UPTIME_FEED",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "name": "getTokenData",
+    "outputs": [
+      { "internalType": "address", "name": "priceFeed", "type": "address" },
+      { "internalType": "uint256", "name": "pricePrecision", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_token", "type": "address" }
+    ],
+    "name": "getTokenPrice",
+    "outputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" },
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_token", "type": "address" },
+      {
+        "components": [
+          { "internalType": "address", "name": "priceFeed", "type": "address" },
+          {
+            "internalType": "uint256",
+            "name": "pricePrecision",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct ChainlinkOracle.TokenData",
+        "name": "_tokenData",
+        "type": "tuple"
+      }
+    ],
+    "name": "setTokenData",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "newOwner", "type": "address" }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

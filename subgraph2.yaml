@@ -1,14 +1,15 @@
-specVersion: 0.0.9
+specVersion: 0.0.8
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
     name: USDsV2
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
+      address: "0x7160654d6a254d28EaDa2E5A107ED46081DDB222"
       abi: USDsV2
-      address: "0xD74f5255D557944cf7Dd0E45FF521520002D5748"
-      startBlock: 169353778
+      startBlock: 37533147
+      #startBlock: 51000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -25,12 +26,6 @@ dataSources:
       abis:
         - name: USDsV2
           file: ./abis/USDsV2.json
-        - name: _ERC20
-          file: ./abis/Prices/ERC20.json
-        - name: MasterpriceOracle
-          file: ./abis/MasterpriceOracle.json
-        - name: Strategy
-          file: ./abis/Strategy.json
       eventHandlers:
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
@@ -49,18 +44,19 @@ dataSources:
         - event: VaultUpdated(address)
           handler: handleVaultUpdated
       blockHandlers:
-        - handler: handleTotalSupply
-          filter:
-            kind: polling
-            every: 3000
+          - handler: handleTotalSupply
+            filter:
+              kind: polling
+              every: 600
       file: ./src/us-ds-v-2.ts
   - kind: ethereum
     name: ChainlinkOracle
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
+      address: "0xdB90F2383Fd02fe2afdAC7736cE47e04A2A9aA19"
       abi: ChainlinkOracle
-      address: "0x0Ca9bf1c701a403f6dB0695a0D6996288F70935d"
-      startBlock: 168333569
+      startBlock: 43732504
+      #startBlock: 51000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -76,11 +72,12 @@ dataSources:
       file: ./src/chainlink-oracle.ts
   - kind: ethereum
     name: MasterpriceOracle
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
+      address: "0x776688CEc7E2f8cC93d16769CF56CC938DD47bA2"
       abi: MasterpriceOracle
-      address: "0x14D99412dAB1878dC01Fe7a1664cdE85896e8E50"
-      startBlock: 168336058
+      startBlock: 43732516
+      #startBlock: 51000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -99,11 +96,12 @@ dataSources:
       file: ./src/masterprice-oracle.ts
   - kind: ethereum
     name: Vaultcore
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
+      address: "0xB7C5819EC916160305c8ceCa8061e1e9b6E88475"
       abi: Vaultcore
-      address: "0x6Bbc476Ee35CBA9e9c3A59fc5b10d7a0BC6f74Ca"
-      startBlock: 169370915
+      startBlock: 43732616
+      #startBlock: 51000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -145,32 +143,13 @@ dataSources:
           handler: handleYieldReceiverUpdated
       file: ./src/vaultcore.ts
   - kind: ethereum
-    name: FeeCalculator
-    network: arbitrum-one
-    source:
-      abi: FeeCalculator
-      address: "0xd122840Fa5b48B2ddB723cCC5928f88dcb558AFC"
-      startBlock: 169379007
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - FeeCalibrated
-      abis:
-        - name: FeeCalculator
-          file: ./abis/FeeCalculator.json
-      eventHandlers:
-        - event: FeeCalibrated(indexed address,uint16,uint16)
-          handler: handleFeeCalibrated
-      file: ./src/fee-calculator.ts
-  - kind: ethereum
     name: CollateralManager
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
+      address: "0x81493FC19113c427317683e05D18c27C8A3CbEdd"
       abi: CollateralManager
-      address: "0xdA423BFa1E196598190deEfbAFC28aDb36FaeDF0"
-      startBlock: 169378980
+      startBlock: 43732643 
+      #startBlock: 51000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -185,24 +164,32 @@ dataSources:
       abis:
         - name: CollateralManager
           file: ./abis/CollateralManager.json
-        - name: Strategy
-          file: ./abis/Strategy.json
+        ###########################################
+        ############## Price Oracle ###############
+        ###########################################
+        # ERC20
         - name: _ERC20
           file: ./abis/Prices/ERC20.json
+        # Curve Contracts
         - name: CurvePool
           file: ./abis/Prices/Curve/Pool.json
         - name: CurveRegistry
           file: ./abis/Prices/Curve/Registry.json
         - name: CalculationsCurve
           file: ./abis/Prices/Calculations/Curve.json
+        # YearnLens Contracts
         - name: YearnLensContract
           file: ./abis/Prices/YearnLens.json
+        # Aave Oracle Contract
         - name: AaveOracleContract
           file: ./abis/Prices/AaveOracle.json
+        # SushiSwap Contracts
         - name: CalculationsSushiSwap
           file: ./abis/Prices/Calculations/SushiSwap.json
+        # ChainLink Contracts
         - name: ChainLinkContract
           file: ./abis/Prices/ChainLink.json
+        # Uniswap Contracts
         - name: UniswapRouter
           file: ./abis/Prices/Uniswap/Router.json
         - name: UniswapFactory
@@ -225,11 +212,12 @@ dataSources:
       file: ./src/collateral-manager.ts
   - kind: ethereum
     name: Dripper
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
+      address: "0x8efc7108760503262da147bd44755F241Add4a75"
       abi: Dripper
-      address: "0xd50193e8fFb00beA274bD2b11d0a7Ea08dA044c1"
-      startBlock: 169379033
+      startBlock: 43769882
+      #startBlock: 51000000 
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -251,11 +239,12 @@ dataSources:
       file: ./src/dripper.ts
   - kind: ethereum
     name: RebaseManager
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
+      address: "0x4077960d0e82E0ee567Ed410F3DC58013a10ba33"
       abi: RebaseManager
-      address: "0x297331A0155B1e30bBFA85CF3609eC0fF037BEEC"
-      startBlock: 169379062
+      startBlock: 37533277
+      #startBlock: 51000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -277,11 +266,12 @@ dataSources:
       file: ./src/rebase-manager.ts
   - kind: ethereum
     name: SPABuyback
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
+      address: "0x9081189CB178cAA6406fE0C03Cb3B850c0e2Ab4b"
       abi: SPABuyback
-      address: "0xFbc0d3cA777722d234FE01dba94DeDeDb277AFe3"
-      startBlock: 168340658
+      startBlock: 37533300
+      #startBlock: 51000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -296,10 +286,9 @@ dataSources:
       abis:
         - name: SPABuyback
           file: ./abis/SPABuyback.json
+        # ERC20
         - name: _ERC20
           file: ./abis/Prices/ERC20.json
-        - name: MasterpriceOracle
-          file: ./abis/MasterpriceOracle.json
       eventHandlers:
         - event: BoughtBack(indexed address,indexed address,uint256,uint256,uint256)
           handler: handleBoughtBack
@@ -316,11 +305,12 @@ dataSources:
       file: ./src/spa-buyback.ts
   - kind: ethereum
     name: YieldReserve
-    network: arbitrum-one
+    network: arbitrum-goerli
     source:
+      address: "0xeECF5E7545623f41727f6D0BE297f20FCE1Acb41"
       abi: YieldReserve
-      address: "0xfD14C8ef0993fd9409f7820BA8BA80370529d861"
-      startBlock: 169379107
+      startBlock: 55158390 
+      #startBlock: 51000000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -338,8 +328,6 @@ dataSources:
       abis:
         - name: YieldReserve
           file: ./abis/YieldReserve.json
-        - name: _ERC20
-          file: ./abis/Prices/ERC20.json
       eventHandlers:
         - event: BuybackAddressUpdated(address)
           handler: handleBuybackAddressUpdated
@@ -360,62 +348,3 @@ dataSources:
         - event: VaultAddressUpdated(address)
           handler: handleVaultAddressUpdated
       file: ./src/yield-reserve.ts
-templates:
-  - kind: ethereum
-    name: Strategy
-    network: arbitrum-one
-    source:
-      abi: Strategy
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - Deposit
-        - HarvestIncentiveCollected
-        - HarvestIncentiveRateUpdated
-        - Initialized
-        - InterestCollected
-        - OwnershipTransferred
-        - PTokenAdded
-        - PTokenRemoved
-        - RewardTokenCollected
-        - SlippageUpdated
-        - VaultUpdated
-        - Withdrawal
-        - YieldReceiverUpdated
-      abis:
-        - name: Strategy
-          file: ./abis/Strategy.json
-        - name: _ERC20
-          file: ./abis/Prices/ERC20.json
-        - name: MasterpriceOracle
-          file: ./abis/MasterpriceOracle.json
-      eventHandlers:
-        - event: Deposit(indexed address,uint256)
-          handler: handleDeposit
-        - event: HarvestIncentiveCollected(indexed address,indexed address,uint256)
-          handler: handleHarvestIncentiveCollected
-        - event: HarvestIncentiveRateUpdated(uint16)
-          handler: handleHarvestIncentiveRateUpdated
-        - event: Initialized(uint8)
-          handler: handleInitialized
-        - event: InterestCollected(indexed address,indexed address,uint256)
-          handler: handleInterestCollected
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
-        - event: PTokenAdded(indexed address,address)
-          handler: handlePTokenAdded
-        - event: PTokenRemoved(indexed address,address)
-          handler: handlePTokenRemoved
-        - event: RewardTokenCollected(indexed address,indexed address,uint256)
-          handler: handleRewardTokenCollected
-        - event: SlippageUpdated(uint16,uint16)
-          handler: handleSlippageUpdated
-        - event: VaultUpdated(address)
-          handler: handleVaultUpdated
-        - event: Withdrawal(indexed address,uint256)
-          handler: handleWithdrawal
-        - event: YieldReceiverUpdated(address)
-          handler: handleYieldReceiverUpdated
-      file: ./src/strategy.ts
