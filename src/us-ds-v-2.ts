@@ -5,6 +5,7 @@ import {
   BigDecimal,
   Bytes,
   DataSourceContext,
+  store,
 } from "@graphprotocol/graph-ts";
 import {
   Approval as ApprovalEvent,
@@ -52,6 +53,7 @@ export function handleTotalSupply(block: ethereum.Block): void {
   let totalInStrategiesValue = BigDecimal.fromString("0");
   let totalInStrategiesAmt = BigDecimal.fromString("0");
   let totalInVaultAmt = BigDecimal.fromString("0");
+  let price = BigDecimal.fromString("0");
   let totalCollateral = TotalCollateral.load(Bytes.fromI32(1));
   if (!totalCollateral) {
     totalCollateral = new TotalCollateral(Bytes.fromI32(1));
@@ -106,7 +108,7 @@ export function handleTotalSupply(block: ethereum.Block): void {
           .concat("-")
           .concat(timestampConvertDate(block.timestamp))
       );
-      collateralDay.collateral=Bytes.empty();
+      collateralDay.collateral = Bytes.empty();
       collateralDay.symbol = "_";
       collateralDay.name = "_";
       collateralDay.decimals = BigInt.fromI32(0);
@@ -119,11 +121,9 @@ export function handleTotalSupply(block: ethereum.Block): void {
       collateralDay.totalStrategyValue = BigDecimal.fromString("0");
       collateralDay.totalValue = BigDecimal.fromString("0");
       collateralDay.interestCollectedValue = BigDecimal.fromString("0");
-      collateralDay.interestDistributedValue = BigDecimal.fromString("0");
-      collateralDay.interestValue = BigDecimal.fromString("0");
       collateralDay.blockTimestamp = BigInt.fromI32(0);
     }
-    collateralDay.collateral=collateralsArray[i];
+    collateralDay.collateral = collateralsArray[i];
     collateralDay.symbol = tkn.symbol;
     collateralDay.name = tkn.name;
     collateralDay.decimals = tkn.decimals;
@@ -140,10 +140,17 @@ export function handleTotalSupply(block: ethereum.Block): void {
           .toBigDecimal()
       );
     vaultAmountArray.push(vaultAmount);
-    let price = oracle
-      .getPrice(Address.fromBytes(collateralsArray[i]))
-      .price.toBigDecimal()
-      .div(BigDecimal.fromString("100000000"));
+    let priceCall = oracle.try_getPrice(Address.fromBytes(collateralsArray[i]));
+
+    if (priceCall.reverted) {
+      price = BigDecimal.fromString("1");
+    } else {
+      price = priceCall.value.price
+        .toBigDecimal()
+        .div(BigDecimal.fromString("100000000"));
+    }
+    tkn.price = price;
+    collateralDay.price = price;
     let vaultValue = vaultAmount.times(price);
     vaultValueArray.push(vaultValue);
     entity.totalInVault = entity.totalInVault.plus(vaultValue);
@@ -176,19 +183,25 @@ export function handleTotalSupply(block: ethereum.Block): void {
       strategyValueArray.push(strategyBalance.times(price));
       tkn.strategiesValues = strategyValueArray;
       collateralDay.strategiesValues = tkn.strategiesValues;
-      totalInStrategiesValue = totalInStrategiesValue.plus(
-        tkn.totalStrategyValue
-      );
+
+      totalInStrategiesAmt = totalInStrategiesAmt.plus(strategyBalance);
     }
+    totalInStrategiesValue = totalInStrategiesValue.plus(
+      tkn.totalStrategyValue
+    );
     totalInVaultAmt = totalInVaultAmt.plus(tkn.vaultAmount);
-    totalInStrategiesAmt = totalInStrategiesAmt.plus(tkn.totalStrategyValue);
+
     tkn.totalValue = tkn.vaultValue.plus(tkn.totalStrategyValue);
     collateralDay.totalValue = tkn.totalValue;
     collateralDay.blockTimestamp = block.timestamp;
     tkn.save();
-    collateralDay.save();
+
+    if (collateralDay.blockTimestamp >= BigInt.fromI32(1705276800)) {
+      collateralDay.save();
+    }
   }
-  entity.collateralsAmt= totalInVaultAmt.plus(totalInStrategiesAmt);
+  entity.collateralsAmt = totalInVaultAmt.plus(totalInStrategiesAmt);
+  entity.collateralStrategyAmt = totalInStrategiesAmt;
   entity.totalInStrategies = totalInStrategiesValue;
   totalCollateral.vaultAmounts = vaultAmountArray;
   totalCollateral.vaultValues = vaultValueArray;
@@ -272,7 +285,7 @@ export function handlePaused(event: PausedEvent): void {
 
 export function handleTotalSupplyUpdated(event: TotalSupplyUpdatedEvent): void {
   let entity = new TotalSupplyUpdate(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    event.transaction.hash
   );
   entity.totalSupply = event.params.totalSupply;
   entity.rebasingCredits = event.params.rebasingCredits;

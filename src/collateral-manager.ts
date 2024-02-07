@@ -69,6 +69,7 @@ export function handleCollateralAdded(event: CollateralAddedEvent): void {
     collateralToken.symbol = "_";
     collateralToken.name = "_";
     collateralToken.decimals = BigInt.fromI32(0);
+    collateralToken.price = BigDecimal.fromString("0");
     collateralToken.vaultAmount = BigDecimal.fromString("0");
     collateralToken.vaultValue = BigDecimal.fromString("0");
     collateralToken.strategiesAddresses = new Array<Bytes>(0);
@@ -77,8 +78,6 @@ export function handleCollateralAdded(event: CollateralAddedEvent): void {
     collateralToken.strategiesValues = new Array<BigDecimal>(0);
     collateralToken.totalStrategyValue = BigDecimal.fromString("0");
     collateralToken.interestCollectedValue = BigDecimal.fromString("0");
-    collateralToken.interestDistributedValue = BigDecimal.fromString("0");
-    collateralToken.interestValue = BigDecimal.fromString("0");
     collateralToken.totalValue = BigDecimal.fromString("0");
   }
 
@@ -95,10 +94,11 @@ export function handleCollateralAdded(event: CollateralAddedEvent): void {
         .concat("-")
         .concat(timestampConvertDate(event.block.timestamp))
     );
-    collateralDay.collateral=Bytes.empty();
+    collateralDay.collateral = Bytes.empty();
     collateralDay.symbol = "_";
     collateralDay.name = "_";
     collateralDay.decimals = BigInt.fromI32(0);
+    collateralDay.price = BigDecimal.fromString("0");
     collateralDay.vaultAmount = BigDecimal.fromString("0");
     collateralDay.vaultValue = BigDecimal.fromString("0");
     collateralDay.strategiesAddresses = new Array<Bytes>(0);
@@ -108,8 +108,6 @@ export function handleCollateralAdded(event: CollateralAddedEvent): void {
     collateralDay.totalStrategyValue = BigDecimal.fromString("0");
     collateralDay.totalValue = BigDecimal.fromString("0");
     collateralDay.interestCollectedValue = BigDecimal.fromString("0");
-    collateralDay.interestDistributedValue = BigDecimal.fromString("0");
-    collateralDay.interestValue = BigDecimal.fromString("0");
     collateralDay.blockTimestamp = BigInt.fromI32(0);
   }
 
@@ -138,12 +136,15 @@ export function handleCollateralAdded(event: CollateralAddedEvent): void {
   collateralToken.name = collateral.name();
   collateralToken.decimals = collateral.decimals();
   collateralToken.symbol = collateral.symbol();
-  collateralDay.collateral= event.params.collateral;
+  collateralDay.collateral = event.params.collateral;
   collateralDay.name = collateral.name();
   collateralDay.decimals = collateral.decimals();
   collateralDay.symbol = collateral.symbol();
   collateralDay.blockTimestamp = event.block.timestamp;
-  collateralDay.save();
+
+  if (collateralDay.blockTimestamp >= BigInt.fromI32(1705276800)) {
+    collateralDay.save();
+  }
   collateralToken.save();
   totalCollateral.save();
   entity.save();
@@ -238,12 +239,12 @@ export function handleCollateralStrategyAdded(
         .toHexString()
         .concat("-")
         .concat(timestampConvertDate(event.block.timestamp))
-        
     );
-    collateralDay.collateral=Bytes.empty();
+    collateralDay.collateral = Bytes.empty();
     collateralDay.symbol = "_";
     collateralDay.name = "_";
     collateralDay.decimals = BigInt.fromI32(0);
+    collateralDay.price = BigDecimal.fromString("0");
     collateralDay.vaultAmount = BigDecimal.fromString("0");
     collateralDay.vaultValue = BigDecimal.fromString("0");
     collateralDay.strategiesAddresses = new Array<Bytes>(0);
@@ -253,8 +254,7 @@ export function handleCollateralStrategyAdded(
     collateralDay.totalStrategyValue = BigDecimal.fromString("0");
     collateralDay.totalValue = BigDecimal.fromString("0");
     collateralDay.interestCollectedValue = BigDecimal.fromString("0");
-    collateralDay.interestDistributedValue = BigDecimal.fromString("0");
-    collateralDay.interestValue = BigDecimal.fromString("0");
+
     collateralDay.blockTimestamp = BigInt.fromI32(0);
   }
 
@@ -282,7 +282,7 @@ export function handleCollateralStrategyAdded(
 
   collateralToken.strategiesNames = strategiesNamesArray;
   collateralDay.strategiesNames = collateralToken.strategiesNames;
-  collateralDay.collateral= event.params.collateral;
+  collateralDay.collateral = event.params.collateral;
 
   let strategy = usdsStrategy.load(event.params.strategy);
   if (!strategy) {
@@ -327,8 +327,11 @@ export function handleCollateralStrategyAdded(
 
   strategy.col = tokenArray;
   strategy.bal = BalArray;
+  if (collateralDay.blockTimestamp >= BigInt.fromI32(1705276800)) {
+    collateralDay.save();
+  }
   collateralToken.save();
-  collateralDay.save();
+
   strategy.save();
 
   entity.save();

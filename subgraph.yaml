@@ -122,6 +122,10 @@ dataSources:
       abis:
         - name: Vaultcore
           file: ./abis/Vaultcore.json
+        - name: _ERC20
+          file: ./abis/Prices/ERC20.json
+        - name: USDsV2
+          file: ./abis/USDsV2.json
       eventHandlers:
         - event: Allocated(indexed address,indexed address,uint256)
           handler: handleAllocated
@@ -387,10 +391,30 @@ templates:
       abis:
         - name: Strategy
           file: ./abis/Strategy.json
-        - name: _ERC20
-          file: ./abis/Prices/ERC20.json
         - name: MasterpriceOracle
           file: ./abis/MasterpriceOracle.json
+        - name: _ERC20
+          file: ./abis/Prices/ERC20.json
+        - name: CurvePool
+          file: ./abis/Prices/Curve/Pool.json
+        - name: CurveRegistry
+          file: ./abis/Prices/Curve/Registry.json
+        - name: CalculationsCurve
+          file: ./abis/Prices/Calculations/Curve.json
+        - name: YearnLensContract
+          file: ./abis/Prices/YearnLens.json
+        - name: AaveOracleContract
+          file: ./abis/Prices/AaveOracle.json
+        - name: CalculationsSushiSwap
+          file: ./abis/Prices/Calculations/SushiSwap.json
+        - name: ChainLinkContract
+          file: ./abis/Prices/ChainLink.json
+        - name: UniswapRouter
+          file: ./abis/Prices/Uniswap/Router.json
+        - name: UniswapFactory
+          file: ./abis/Prices/Uniswap/Factory.json
+        - name: UniswapPair
+          file: ./abis/Prices/Uniswap/Pair.json
       eventHandlers:
         - event: Deposit(indexed address,uint256)
           handler: handleDeposit

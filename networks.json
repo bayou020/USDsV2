@@ -48,8 +48,7 @@
     },
     "ChainlinkOracle": {
       "address": "0x0Ca9bf1c701a403f6dB0695a0D6996288F70935d",
-      "startBlock": 168333569,
-      "endBlock":169370915
+      "startBlock": 168333569
     },
     "MasterpriceOracle": {
       "address": "0x14D99412dAB1878dC01Fe7a1664cdE85896e8E50",

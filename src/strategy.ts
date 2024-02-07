@@ -22,6 +22,7 @@ import {
   YieldReceiverUpdated as YieldReceiverUpdatedEvent,
 } from "../generated/templates/Strategy/Strategy";
 import { _ERC20 } from "../generated/CollateralManager/_ERC20";
+import { getUsdPricePerToken, getUsdPrice } from "../src/prices";
 import { MasterpriceOracle } from "../generated/MasterpriceOracle/MasterpriceOracle";
 import { Strategy as StrategyContract } from "../generated/templates/Strategy/Strategy";
 import {
@@ -42,7 +43,10 @@ import {
   usdsStrategy,
   Collateral,
   DailyCollateral,
+  rewardToken,
+  DailyRewardToken,
   totalRevenue,
+  DaytotalRevenue,
 } from "../generated/schema";
 import { Strategy } from "../generated/templates";
 import { timestampConvertDate } from "../src/utils/utils";
@@ -116,36 +120,118 @@ export function handleHarvestIncentiveCollected(
     total = new totalRevenue(Bytes.fromHexString("0x01"));
     total.totalInterest = BigDecimal.fromString("0");
     total.totalReward = BigDecimal.fromString("0");
+    total.totalDistributed = BigDecimal.fromString("0");
+    total.totalRevenue = BigDecimal.fromString("0");
   }
-  let oracle = MasterpriceOracle.bind(
-    Address.fromString("0x14D99412dAB1878dC01Fe7a1664cdE85896e8E50")
-  );
+  let day = DaytotalRevenue.load(timestampConvertDate(event.block.timestamp));
+  if (!day) {
+    day = new DaytotalRevenue(timestampConvertDate(event.block.timestamp));
+    day.totalInterest = BigDecimal.fromString("0");
+    day.totalReward = BigDecimal.fromString("0");
+    day.totalDistributed = BigDecimal.fromString("0");
+    day.totalRevenue = BigDecimal.fromString("0");
+  }
   let entity = new HarvestIncentiveCollect(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   );
-  let tkn = Collateral.load(event.params.token);
-  if (!tkn) {
-    tkn = new Collateral(event.params.token);
+  let rwd = rewardToken.load(event.params.token);
+  if (!rwd) {
+    rwd = new rewardToken(event.params.token);
+    rwd.symbol = "_";
+    rwd.name = "_";
+    rwd.strategy = Bytes.empty();
+    rwd.decimals = BigInt.fromI32(0);
+    rwd.actualPrice = BigDecimal.fromString("0");
+    rwd.DistributedAmount = BigDecimal.fromString("0");
+    rwd.interestCollectedAmount = BigDecimal.fromString("0");
+    rwd.interestAmount = BigDecimal.fromString("0");
+    rwd.rewardCollectedAmount = BigDecimal.fromString("0");
+    rwd.rewardAmount = BigDecimal.fromString("0");
+    rwd.amount = BigDecimal.fromString("0");
+    rwd.value = BigDecimal.fromString("0");
   }
-  let collateralDay = DailyCollateral.load(
+  let rwdDay = DailyRewardToken.load(
     event.params.token
       .toHexString()
       .concat("-")
       .concat(timestampConvertDate(event.block.timestamp))
   );
-  if (!collateralDay) {
-    collateralDay = new DailyCollateral(
+  if (!rwdDay) {
+    rwdDay = new DailyRewardToken(
       event.params.token
         .toHexString()
         .concat("-")
         .concat(timestampConvertDate(event.block.timestamp))
     );
+    rwdDay.symbol = "_";
+    rwdDay.name = "_";
+    rwdDay.strategy = Bytes.empty();
+    rwdDay.decimals = BigInt.fromI32(0);
+    rwdDay.actualPrice = BigDecimal.fromString("0");
+    rwdDay.interestCollectedAmount = BigDecimal.fromString("0");
+    rwdDay.interestAmount = BigDecimal.fromString("0");
+    rwdDay.DistributedAmount = BigDecimal.fromString("0");
+    rwdDay.rewardCollectedAmount = BigDecimal.fromString("0");
+    rwdDay.rewardAmount = BigDecimal.fromString("0");
+    rwdDay.amount = BigDecimal.fromString("0");
+    rwdDay.value = BigDecimal.fromString("0");
+    rwdDay.blockTimestamp = BigInt.fromI32(0);
   }
   let token = _ERC20.bind(event.params.token);
-  let tokenPrice = oracle
-    .getPrice(event.params.token)
-    .price.toBigDecimal()
-    .div(BigDecimal.fromString("100000000"));
+
+  rwd.strategy = event.address;
+  rwdDay.strategy = rwd.strategy;
+  rwd.symbol = token.symbol();
+  rwdDay.symbol = rwd.symbol;
+  rwd.name = token.name();
+  rwdDay.name = rwd.name;
+  rwd.decimals = token.decimals();
+  rwdDay.decimals = rwd.decimals;
+  rwd.actualPrice = getUsdPricePerToken(event.params.token).usdPrice;
+  rwdDay.actualPrice = rwd.actualPrice;
+  rwd.DistributedAmount = rwd.DistributedAmount.plus(
+    event.params.amount.toBigDecimal().div(
+      BigInt.fromI32(10)
+        .pow(token.decimals().toU32() as u8)
+        .toBigDecimal()
+    )
+  );
+  rwdDay.DistributedAmount = rwdDay.DistributedAmount.plus(
+    event.params.amount.toBigDecimal().div(
+      BigInt.fromI32(10)
+        .pow(token.decimals().toU32() as u8)
+        .toBigDecimal()
+    )
+  );
+  rwd.amount = rwd.amount.plus(rwd.DistributedAmount);
+  rwdDay.amount = rwdDay.amount.plus(rwdDay.DistributedAmount);
+  rwd.value = rwd.value.plus(
+    event.params.amount
+      .toBigDecimal()
+      .div(
+        BigInt.fromI32(10)
+          .pow(token.decimals().toU32() as u8)
+          .toBigDecimal()
+      )
+      .times(rwd.actualPrice)
+  );
+  rwdDay.value = rwdDay.value.plus(
+    event.params.amount
+      .toBigDecimal()
+      .div(
+        BigInt.fromI32(10)
+          .pow(token.decimals().toU32() as u8)
+          .toBigDecimal()
+      )
+      .times(rwd.actualPrice)
+  );
+
+  // let tokenCall=oracle
+  // .try_getPrice(event.params.token)
+  // .value.price.toBigDecimal()
+  // let tokenPrice = tokenCall
+  //   .div(BigDecimal.fromString("100000000"));
+  let tokenPrice = getUsdPricePerToken(event.params.token).usdPrice;
   entity.strategy = event.address;
   entity.token = event.params.token;
   entity.harvestor = event.params.harvestor;
@@ -158,22 +244,37 @@ export function handleHarvestIncentiveCollected(
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
-  tkn.interestDistributedValue = tkn.interestDistributedValue.plus(
-    entity.amount.times(tokenPrice)
-  );
-  tkn.interestValue = tkn.interestValue.plus(tkn.interestDistributedValue);
-  total.totalInterest = total.totalInterest.plus(tkn.interestDistributedValue);
-  collateralDay.interestDistributedValue = collateralDay.interestDistributedValue.plus(
-    entity.amount.times(tokenPrice)
-  );
-  collateralDay.interestValue = collateralDay.interestValue.plus(
-    collateralDay.interestDistributedValue
-  );
-  collateralDay.blockTimestamp = event.block.timestamp;
 
-  collateralDay.save();
+  total.totalDistributed = total.totalDistributed.plus(
+    event.params.amount
+      .toBigDecimal()
+      .div(
+        BigInt.fromI32(10)
+          .pow(token.decimals().toU32() as u8)
+          .toBigDecimal()
+      )
+      .times(tokenPrice)
+  );
+  day.totalDistributed = day.totalDistributed.plus(
+    event.params.amount
+      .toBigDecimal()
+      .div(
+        BigInt.fromI32(10)
+          .pow(token.decimals().toU32() as u8)
+          .toBigDecimal()
+      )
+      .times(tokenPrice)
+  );
+  rwdDay.blockTimestamp = event.block.timestamp;
+  total.totalRevenue = total.totalInterest.plus(total.totalDistributed);
+  day.totalRevenue = day.totalInterest.plus(day.totalDistributed);
+  day.blockTimestamp = event.block.timestamp;
+  if (rwdDay.blockTimestamp >= BigInt.fromI32(1705276800)) {
+    rwdDay.save();
+  }
+  day.save();
   total.save();
-  tkn.save();
+  rwd.save();
   entity.save();
 }
 
@@ -197,6 +298,7 @@ export function handleInitialized(event: InitializedEvent): void {
   let entity = new StrategyInitialize(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   );
+  entity.name = StrategyContract.bind(event.address)._name;
   entity.strategy = event.address;
 
   entity.version = event.params.version;
@@ -213,7 +315,16 @@ export function handleInterestCollected(event: InterestCollectedEvent): void {
   if (!total) {
     total = new totalRevenue(Bytes.fromHexString("0x01"));
     total.totalInterest = BigDecimal.fromString("0");
+    total.totalDistributed = BigDecimal.fromString("0");
     total.totalReward = BigDecimal.fromString("0");
+  }
+  let day = DaytotalRevenue.load(timestampConvertDate(event.block.timestamp));
+  if (!day) {
+    day = new DaytotalRevenue(timestampConvertDate(event.block.timestamp));
+    day.totalInterest = BigDecimal.fromString("0");
+    day.totalReward = BigDecimal.fromString("0");
+    day.totalDistributed = BigDecimal.fromString("0");
+    day.totalRevenue = BigDecimal.fromString("0");
   }
   let entity = new InterestCollect(
     event.transaction.hash.concatI32(event.logIndex.toI32())
@@ -221,30 +332,59 @@ export function handleInterestCollected(event: InterestCollectedEvent): void {
   let oracle = MasterpriceOracle.bind(
     Address.fromString("0x14D99412dAB1878dC01Fe7a1664cdE85896e8E50")
   );
-  let tkn = Collateral.load(event.params.asset);
-  if (!tkn) {
-    tkn = new Collateral(event.params.asset);
+  let col = Collateral.load(event.params.asset);
+  if (!col) {
+    col = new Collateral(event.params.asset);
+    col.symbol = "_";
+    col.name = "_";
+    col.decimals = BigInt.fromI32(0);
+    col.price = BigDecimal.fromString("0");
+    col.vaultAmount = BigDecimal.fromString("0");
+    col.vaultValue = BigDecimal.fromString("0");
+    col.strategiesAddresses = new Array<Bytes>(0);
+    col.strategiesNames = new Array<string>(0);
+    col.strategiesAmounts = new Array<BigDecimal>(0);
+    col.strategiesValues = new Array<BigDecimal>(0);
+    col.totalStrategyValue = BigDecimal.fromString("0");
+    col.interestCollectedValue = BigDecimal.fromString("0");
+    col.totalValue = BigDecimal.fromString("0");
   }
-  let collateralDay = DailyCollateral.load(
+  let colDay = DailyCollateral.load(
     event.params.asset
       .toHexString()
       .concat("-")
       .concat(timestampConvertDate(event.block.timestamp))
   );
-  if (!collateralDay) {
-    collateralDay = new DailyCollateral(
+  if (!colDay) {
+    colDay = new DailyCollateral(
       event.params.asset
         .toHexString()
         .concat("-")
         .concat(timestampConvertDate(event.block.timestamp))
     );
+    colDay.collateral = Bytes.empty();
+    colDay.symbol = "_";
+    colDay.name = "_";
+    colDay.decimals = BigInt.fromI32(0);
+    colDay.price = BigDecimal.fromString("0");
+    colDay.vaultAmount = BigDecimal.fromString("0");
+    colDay.vaultValue = BigDecimal.fromString("0");
+    colDay.strategiesAddresses = new Array<Bytes>(0);
+    colDay.strategiesNames = new Array<string>(0);
+    colDay.strategiesAmounts = new Array<BigDecimal>(0);
+    colDay.strategiesValues = new Array<BigDecimal>(0);
+    colDay.totalStrategyValue = BigDecimal.fromString("0");
+    colDay.totalValue = BigDecimal.fromString("0");
+    colDay.interestCollectedValue = BigDecimal.fromString("0");
+    colDay.blockTimestamp = BigInt.fromI32(0);
   }
 
   let token = _ERC20.bind(event.params.asset);
-  let tokenPrice = oracle
-    .getPrice(event.params.asset)
-    .price.toBigDecimal()
-    .div(BigDecimal.fromString("100000000"));
+  let tokenCall = oracle
+    .try_getPrice(event.params.asset)
+    .value.price.toBigDecimal();
+  let tokenPrice = tokenCall.div(BigDecimal.fromString("100000000"));
+  // let tokenPrice = BigDecimal.fromString("1");
   entity.strategy = event.address;
   entity.asset = event.params.asset;
   entity.recipient = event.params.recipient;
@@ -257,22 +397,28 @@ export function handleInterestCollected(event: InterestCollectedEvent): void {
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
-  tkn.interestCollectedValue = tkn.interestCollectedValue.plus(
+  col.interestCollectedValue = col.interestCollectedValue.plus(
     entity.amount.times(tokenPrice)
   );
-  tkn.interestValue = tkn.interestValue.plus(tkn.interestCollectedValue);
-  total.totalInterest = total.totalInterest.plus(tkn.interestCollectedValue);
-
-  collateralDay.interestCollectedValue = collateralDay.interestCollectedValue.plus(
+  total.totalInterest = total.totalInterest.plus(col.interestCollectedValue);
+  day.totalInterest = day.totalInterest.plus(col.interestCollectedValue);
+  colDay.interestCollectedValue = colDay.interestCollectedValue.plus(
     entity.amount.times(tokenPrice)
   );
-  collateralDay.interestValue = collateralDay.interestValue.plus(
-    collateralDay.interestCollectedValue
-  );
-  collateralDay.blockTimestamp = event.block.timestamp;
+  colDay.collateral = event.params.asset;
+  let collateral = _ERC20.bind(Address.fromBytes(event.params.asset));
+  colDay.name = collateral.name();
+  colDay.decimals = collateral.decimals();
+  colDay.symbol = collateral.symbol();
 
-  collateralDay.save();
-  tkn.save();
+  colDay.blockTimestamp = event.block.timestamp;
+  total.totalRevenue = total.totalInterest.plus(total.totalReward);
+  day.totalRevenue = day.totalInterest.plus(day.totalReward);
+  day.blockTimestamp = event.block.timestamp;
+
+  colDay.save();
+  day.save();
+  col.save();
   total.save();
   entity.save();
 }

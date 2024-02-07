@@ -6,6 +6,7 @@ type totalSupplyUsd @entity {
   totalSupply: BigDecimal! # uint256
   totalSupplyAmt: BigDecimal!
   collateralsAmt: BigDecimal!
+  collateralStrategyAmt: BigDecimal!
   ratio: BigDecimal!
   rebasingSupply: BigDecimal! # uint256
   nonRebasingSupply: BigDecimal! # uint256
@@ -15,7 +16,7 @@ type totalSupplyUsd @entity {
 type Mint @entity(immutable: true) {
   id: Bytes!
   wallet: User! # address
-  collateralAddr: Bytes! # address
+  collateral: Token! # address
   usdsAmt: BigDecimal! # uint256
   collateralAmt: BigDecimal! # uint256
   feeAmt: BigDecimal! # uint256
@@ -23,17 +24,31 @@ type Mint @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+type DayMint @entity {
+  id: ID!
+  count: BigInt!
+  amt: BigDecimal!
+  feeAmt: BigDecimal! # uint256
+  blockTimestamp: BigInt!
+}
 
 type Redeem @entity(immutable: true) {
   id: Bytes!
   wallet: User! # address
-  collateralAddr: Bytes! # address
+  collateral: Token! # address
   usdsAmt: BigDecimal! # uint256
   collateralAmt: BigDecimal! # uint256
   feeAmt: BigDecimal! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+}
+type DayRedeem @entity {
+  id: ID!
+  count: BigInt!
+  amt: BigDecimal!
+  feeAmt: BigDecimal! # uint256
+  blockTimestamp: BigInt!
 }
 
 type Approval @entity(immutable: true) {
@@ -121,11 +136,15 @@ type Allocate @entity(immutable: true) {
 type USDsRebase @entity(immutable: true) {
   id: Bytes!
   rebaseAmt: BigDecimal! # uint256
+  APR: BigDecimal! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
-
+type RebaseTimestamp @entity {
+  id: Bytes!
+  blockTimestamp: BigInt!
+}
 type AddCollateral @entity(immutable: true) {
   id: Bytes!
   collateral: Bytes! # address
@@ -420,6 +439,7 @@ type Collateral @entity {
   symbol: String! # String
   name: String! # String
   decimals: BigInt! # String
+  price: BigDecimal!
   vaultAmount: BigDecimal!
   vaultValue: BigDecimal!
   strategiesAddresses: [Bytes!]!
@@ -428,9 +448,8 @@ type Collateral @entity {
   strategiesValues: [BigDecimal!]!
   totalStrategyValue: BigDecimal!
   totalValue: BigDecimal!
-  interestDistributedValue: BigDecimal!
   interestCollectedValue: BigDecimal!
-  interestValue: BigDecimal!
+
 }
 type DailyCollateral @entity {
   id: ID!
@@ -438,6 +457,7 @@ type DailyCollateral @entity {
   symbol: String! # String
   name: String! # String
   decimals: BigInt! # String
+  price: BigDecimal!
   vaultAmount: BigDecimal!
   vaultValue: BigDecimal!
   strategiesAddresses: [Bytes!]!
@@ -446,9 +466,38 @@ type DailyCollateral @entity {
   strategiesValues: [BigDecimal!]!
   totalStrategyValue: BigDecimal!
   totalValue: BigDecimal!
-  interestDistributedValue: BigDecimal!
   interestCollectedValue: BigDecimal!
-  interestValue: BigDecimal!
+  blockTimestamp: BigInt!
+}
+type rewardToken @entity {
+  id: Bytes!
+  strategy: Bytes! # address
+  symbol: String! # String
+  name: String! # String
+  decimals: BigInt! # String
+  actualPrice: BigDecimal!
+  interestCollectedAmount: BigDecimal!
+  rewardCollectedAmount: BigDecimal!
+  DistributedAmount: BigDecimal!
+  interestAmount: BigDecimal!
+  rewardAmount: BigDecimal!
+  value : BigDecimal!
+  amount: BigDecimal!
+}
+type DailyRewardToken @entity {
+  id: ID!
+  strategy: Bytes! # address
+  symbol: String! # String
+  name: String! # String
+  decimals: BigInt! # String
+  actualPrice: BigDecimal!
+  interestCollectedAmount: BigDecimal!
+  rewardCollectedAmount: BigDecimal!
+  DistributedAmount: BigDecimal!
+  interestAmount: BigDecimal!
+  rewardAmount: BigDecimal!
+  amount: BigDecimal!
+  value: BigDecimal!
   blockTimestamp: BigInt!
 }
 type TotalCollateral @entity {
@@ -468,8 +517,18 @@ type mintRedeemFee @entity {
 
 type totalRevenue @entity {
   id: Bytes!
-  totalInterest: BigDecimal! 
+  totalInterest: BigDecimal!
   totalReward: BigDecimal!
+  totalDistributed: BigDecimal!
+  totalRevenue: BigDecimal!
+}
+type DaytotalRevenue @entity {
+  id: ID!
+  totalInterest: BigDecimal!
+  totalReward: BigDecimal!
+  totalRevenue: BigDecimal!
+  totalDistributed: BigDecimal!
+  blockTimestamp: BigInt!
 }
 type Deposit @entity(immutable: true) {
   id: Bytes!
@@ -504,6 +563,7 @@ type HarvestIncentiveRateUpdate @entity(immutable: true) {
 type StrategyInitialize @entity(immutable: true) {
   id: Bytes!
   strategy: Bytes! # address
+  name: String! # String
   version: Int! # uint8
   blockNumber: BigInt!
   blockTimestamp: BigInt!
