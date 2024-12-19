@@ -279,7 +279,15 @@ export function handleCollateralStrategyAdded(
   ) {
     strategiesNamesArray.push("COMPOUND");
   }
+  else if (
+    event.params.strategy ==
+    Bytes.fromHexString("0xa503A325fc97310b6c2FEeAaDeb8816481E0BDAb")
+  ) {
+    strategiesNamesArray.push("FLUID");
+  }
+  
 
+  event.transaction.value
   collateralToken.strategiesNames = strategiesNamesArray;
   collateralDay.strategiesNames = collateralToken.strategiesNames;
   collateralDay.collateral = event.params.collateral;

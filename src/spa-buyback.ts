@@ -39,7 +39,7 @@ import {
 
 export function handleBoughtBack(event: BoughtBackEvent): void {
   let oracle = MasterpriceOracle.bind(
-    Address.fromString("0x14D99412dAB1878dC01Fe7a1664cdE85896e8E50")
+    Address.fromString("0x1b0cd614A9A54DC2805b38EBF203C9A862DDBecd")
   );
   let transaction = new TransactionData(event.transaction.hash.toHexString());
   let entity = new BoughtBack(
@@ -75,10 +75,10 @@ export function handleBoughtBack(event: BoughtBackEvent): void {
     day.spaPrice = BigDecimal.fromString("0");
   }
   let usdsAddress = Address.fromString(
-    "0xD74f5255D557944cf7Dd0E45FF521520002D5748"
+    "0x7160654d6a254d28EaDa2E5A107ED46081DDB222"
   );
   let spaAddress = Address.fromString(
-    "0x5575552988A3A80504bBaeB1311674fCFd40aD4B"
+    "0x2b6bD6c795554600F50a306166D13b2dc4201564"
   );
   let USDs = erc20.bind(usdsAddress);
   let SPA = erc20.bind(spaAddress);
@@ -105,11 +105,17 @@ export function handleBoughtBack(event: BoughtBackEvent): void {
   all.spaAmount = all.spaAmount.plus(digitsConvert(event.params.spaAmount));
 
   all.usdsAmount = all.usdsAmount.plus(digitsConvert(event.params.usdsAmount));
+  let usdsPrice = BigInt.fromI32(1);
+  let usdspriceCall = oracle.try_getPrice(usdsAddress);
+  if (usdspriceCall.reverted) {
+    log.error("usds price call failed", []);
+  }
+  else {
+    usdsPrice = usdspriceCall.value.price;
+  }
   all.usdsValue = all.usdsAmount.times(
-    oracle
-      .getPrice(usdsAddress)
-      .price.toBigDecimal()
-      .div(oracle.getPrice(usdsAddress).precision.toBigDecimal())
+   usdsPrice.toBigDecimal()
+      .div(BigDecimal.fromString("100000000"))
   );
   all.spaValue = all.spaValue.plus(entity.spaValue);
   all.usdsLeft = entity.usdsLeft;
@@ -122,10 +128,8 @@ export function handleBoughtBack(event: BoughtBackEvent): void {
 
   day.usdsAmount = day.usdsAmount.plus(digitsConvert(event.params.usdsAmount));
   day.usdsValue = day.usdsAmount.times(
-    oracle
-      .getPrice(usdsAddress)
-      .price.toBigDecimal()
-      .div(oracle.getPrice(usdsAddress).precision.toBigDecimal())
+    usdsPrice.toBigDecimal()
+    .div(BigDecimal.fromString("100000000"))
   );
   day.spaValue = day.spaValue.plus(entity.spaValue);
   day.usdsLeft = entity.usdsLeft;

@@ -6,6 +6,8 @@ import {
   Bytes,
   DataSourceContext,
   store,
+  log,
+  dataSource,
 } from "@graphprotocol/graph-ts";
 import {
   Approval as ApprovalEvent,
@@ -45,7 +47,7 @@ export function handleTotalSupply(block: ethereum.Block): void {
     "0x6Bbc476Ee35CBA9e9c3A59fc5b10d7a0BC6f74Ca"
   );
   let oracle = MasterpriceOracle.bind(
-    Address.fromString("0x14D99412dAB1878dC01Fe7a1664cdE85896e8E50")
+    Address.fromString("0x1b0cd614A9A54DC2805b38EBF203C9A862DDBecd")
   );
   let collateralsArray = new Array<Bytes>();
   let vaultAmountArray = new Array<BigDecimal>();
@@ -54,6 +56,8 @@ export function handleTotalSupply(block: ethereum.Block): void {
   let totalInStrategiesAmt = BigDecimal.fromString("0");
   let totalInVaultAmt = BigDecimal.fromString("0");
   let price = BigDecimal.fromString("0");
+  let totalSupply = BigInt.fromI32(1);
+  let nrs = BigInt.fromI32(1);
   let totalCollateral = TotalCollateral.load(Bytes.fromI32(1));
   if (!totalCollateral) {
     totalCollateral = new TotalCollateral(Bytes.fromI32(1));
@@ -65,22 +69,46 @@ export function handleTotalSupply(block: ethereum.Block): void {
   let entity = new totalSupplyUsd(timestampConvertDate(block.timestamp));
   let transaction = new TransactionData(block.number.toHexString());
   let usdsAddress = Address.fromString(
-    "0xD74f5255D557944cf7Dd0E45FF521520002D5748"
+    "0x7160654d6a254d28EaDa2E5A107ED46081DDB222"
   );
   let USDsV2 = USDsV2Contract.bind(usdsAddress);
   entity.totalInVault = BigDecimal.fromString("0");
   entity.totalInStrategies = BigDecimal.fromString("0");
-  let totalSupply = USDsV2.totalSupply();
-  entity.totalSupplyAmt = digitsConvert(totalSupply);
-  let usdsPrice = oracle
-    .getPrice(usdsAddress)
-    .price.toBigDecimal()
-    .div(BigDecimal.fromString("100000000"));
+  let callTotalSupply = USDsV2.try_totalSupply();
+  if (callTotalSupply.reverted) {
+    log.warning("USDs Total Supply 1", []);
+    totalSupply = BigInt.fromI32(1);
+    return;
+  } else {
+    totalSupply = callTotalSupply.value;
+  }
+  if (totalSupply.equals(BigInt.fromI32(0))) {
+    entity.totalSupplyAmt = BigDecimal.fromString("1");
+    return;
+  } else {
+    entity.totalSupplyAmt = digitsConvert(totalSupply);
+  }
+  let usdsPrice = BigDecimal.fromString("1");
+  let oracleCall = oracle.try_getPrice(usdsAddress);
+  if (oracleCall.reverted) {
+    log.warning("USDs Price 1", []);
+    usdsPrice = BigDecimal.fromString("1");
+  } else {
+    usdsPrice = oracleCall.value.price
+      .toBigDecimal()
+      .div(BigDecimal.fromString("100000000"));
+  }
+  let nrsCall = USDsV2.try_nonRebasingSupply();
+  if (nrsCall.reverted) {
+    log.warning("USDs nonRebasingSupply 1", []);
+    nrs = BigInt.fromI32(1);
+  } else {
+    nrs = nrsCall.value;
+  }
+
   entity.totalSupply = digitsConvert(totalSupply).times(usdsPrice);
-  entity.nonRebasingSupply = digitsConvert(USDsV2.nonRebasingSupply());
-  entity.rebasingSupply = digitsConvert(totalSupply).minus(
-    digitsConvert(USDsV2.nonRebasingSupply())
-  );
+  entity.nonRebasingSupply = digitsConvert(nrs);
+  entity.rebasingSupply = digitsConvert(totalSupply).minus(digitsConvert(nrs));
 
   entity.transactionData = transaction.id;
   collateralsArray = totalCollateral.collaterals;
@@ -131,12 +159,19 @@ export function handleTotalSupply(block: ethereum.Block): void {
     collateralDay.strategiesNames = tkn.strategiesNames;
 
     let collateral = _ERC20.bind(Address.fromBytes(collateralsArray[i]));
+    let decimals = BigInt.fromI32(1);
+    let dcmCall = collateral.try_decimals();
+    if (dcmCall.reverted) {
+      decimals = BigInt.fromI32(1);
+    } else {
+      decimals = dcmCall.value;
+    }
     let vaultAmount = collateral
       .balanceOf(vaultAddress)
       .toBigDecimal()
       .div(
         BigInt.fromI32(10)
-          .pow(collateral.decimals().toU32() as u8)
+          .pow(decimals.toU32() as u8)
           .toBigDecimal()
       );
     vaultAmountArray.push(vaultAmount);
@@ -284,9 +319,7 @@ export function handlePaused(event: PausedEvent): void {
 }
 
 export function handleTotalSupplyUpdated(event: TotalSupplyUpdatedEvent): void {
-  let entity = new TotalSupplyUpdate(
-    event.transaction.hash
-  );
+  let entity = new TotalSupplyUpdate(event.transaction.hash);
   entity.totalSupply = event.params.totalSupply;
   entity.rebasingCredits = event.params.rebasingCredits;
   entity.rebasingCreditsPerToken = event.params.rebasingCreditsPerToken;

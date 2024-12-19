@@ -50,6 +50,7 @@ import {
 } from "../generated/schema";
 import { Strategy } from "../generated/templates";
 import { timestampConvertDate } from "../src/utils/utils";
+import { log } from "matchstick-as";
 
 export function handleDeposit(event: DepositEvent): void {
   let strategiesArray = new Array<Bytes>();
@@ -266,8 +267,26 @@ export function handleHarvestIncentiveCollected(
       .times(tokenPrice)
   );
   rwdDay.blockTimestamp = event.block.timestamp;
-  total.totalRevenue = total.totalInterest.plus(total.totalDistributed);
-  day.totalRevenue = day.totalInterest.plus(day.totalDistributed);
+  total.totalRevenue = total.totalRevenue.plus(
+    event.params.amount
+      .toBigDecimal()
+      .div(
+        BigInt.fromI32(10)
+          .pow(token.decimals().toU32() as u8)
+          .toBigDecimal()
+      )
+      .times(tokenPrice)
+  );
+  day.totalRevenue = day.totalRevenue.plus(
+    event.params.amount
+      .toBigDecimal()
+      .div(
+        BigInt.fromI32(10)
+          .pow(token.decimals().toU32() as u8)
+          .toBigDecimal()
+      )
+      .times(tokenPrice)
+  );
   day.blockTimestamp = event.block.timestamp;
   if (rwdDay.blockTimestamp >= BigInt.fromI32(1705276800)) {
     rwdDay.save();
@@ -317,6 +336,7 @@ export function handleInterestCollected(event: InterestCollectedEvent): void {
     total.totalInterest = BigDecimal.fromString("0");
     total.totalDistributed = BigDecimal.fromString("0");
     total.totalReward = BigDecimal.fromString("0");
+    total.totalRevenue = BigDecimal.fromString("0");
   }
   let day = DaytotalRevenue.load(timestampConvertDate(event.block.timestamp));
   if (!day) {
@@ -330,7 +350,7 @@ export function handleInterestCollected(event: InterestCollectedEvent): void {
     event.transaction.hash.concatI32(event.logIndex.toI32())
   );
   let oracle = MasterpriceOracle.bind(
-    Address.fromString("0x14D99412dAB1878dC01Fe7a1664cdE85896e8E50")
+    Address.fromString("0x1b0cd614A9A54DC2805b38EBF203C9A862DDBecd")
   );
   let col = Collateral.load(event.params.asset);
   if (!col) {
@@ -380,11 +400,18 @@ export function handleInterestCollected(event: InterestCollectedEvent): void {
   }
 
   let token = _ERC20.bind(event.params.asset);
+  let tokenPriceCall = BigDecimal.fromString("1");
+
   let tokenCall = oracle
-    .try_getPrice(event.params.asset)
-    .value.price.toBigDecimal();
-  let tokenPrice = tokenCall.div(BigDecimal.fromString("100000000"));
-  // let tokenPrice = BigDecimal.fromString("1");
+    .try_getPrice(event.params.asset);
+    if (tokenCall.reverted) {
+      log.error("Error getting price for token: {}", [event.params.asset.toHexString()]);
+    return;
+    }
+    else{
+      tokenPriceCall = tokenCall.value.price.toBigDecimal();
+    }
+  let tokenPrice = tokenPriceCall.div(BigDecimal.fromString("100000000"));
   entity.strategy = event.address;
   entity.asset = event.params.asset;
   entity.recipient = event.params.recipient;
@@ -412,8 +439,16 @@ export function handleInterestCollected(event: InterestCollectedEvent): void {
   colDay.symbol = collateral.symbol();
 
   colDay.blockTimestamp = event.block.timestamp;
-  total.totalRevenue = total.totalInterest.plus(total.totalReward);
-  day.totalRevenue = day.totalInterest.plus(day.totalReward);
+  total.totalRevenue = total.totalRevenue.plus(event.params.amount.toBigDecimal().div(
+    BigInt.fromI32(10)
+      .pow(token.decimals().toU32() as u8)
+      .toBigDecimal()
+  ));
+  day.totalRevenue = day.totalRevenue.plus(event.params.amount.toBigDecimal().div(
+    BigInt.fromI32(10)
+      .pow(token.decimals().toU32() as u8)
+      .toBigDecimal()
+  ));
   day.blockTimestamp = event.block.timestamp;
 
   colDay.save();
